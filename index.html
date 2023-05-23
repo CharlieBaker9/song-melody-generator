@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Song Melody Generator</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script>
+  // Create a function to be called when a button is clicked.
+  function buttonClicked(event) {
+    // Get the button that was clicked.
+    var button = event.target;
+  
+    // Do something with the button.
+    button.style.backgroundColor = "blue";
+    console.log("Button " + button.innerHTML + " was clicked.");
+  }
+  
+  // Add the `click` event listener to all of the buttons.
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", buttonClicked);
+  }
+</script>
+
+</head>
+<body>
+<h1>Song Melody Generator</h1>
+<div id="buttons">
+  <button>1</button>
+  <button>e</button>
+  <button>+</button>
+  <button>a</button>
+  <button>2</button>
+  <button>e</button>
+  <button>+</button>
+  <button>a</button>
+  <button>3</button>
+  <button>e</button>
+  <button>+</button>
+  <button>a</button>
+  <button>4</button>
+  <button>e</button>
+  <button>+</button>
+  <button>a</button>
+</div>
+</body>
+</html>
