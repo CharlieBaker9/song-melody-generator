@@ -3,7 +3,7 @@
 <head>
   <title>Song Melody Generator</title>
   <link rel="stylesheet" href="style.css">
-  <script src="rhythmButtonScript.js"></script>
+  <script type="module" src="buttonScript.js"></script>
 </head>
 <body>
 <div class="header-box">
@@ -85,6 +85,10 @@
   <button class="done-rhythm">Done with Rhythm</button>
 </div>
 <div id="num-notes">Please select rhythm components in order to assign pitch</div>
-<input type="text" id="notes">
+<input type="text" id="pitch-entry">
+<div class="process-notes-container">
+  <button class="process-notes" id="process-notes">Process Notes</button>
+</div>
+<div id="note-errors"></div>
 </body>
 </html>
