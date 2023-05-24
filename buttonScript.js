@@ -1,4 +1,5 @@
-import { midiDict } from "./midiDictionary.js";
+import { durationDict } from "./durationDictionary.js";
+//import MidiWriter from "/Users/charliebaker/node_modules/midi-writer-js/node_modules";
 
 document.addEventListener("DOMContentLoaded", function() {
   const buttons = document.querySelectorAll("#buttons button");
@@ -33,11 +34,12 @@ function changeButtonColor() {
   // If the button is not already clicked, change its color to blue.
   if (selectedButtons.indexOf(this) === -1) {
     this.style.backgroundColor = "rgb(60, 60, 145)";
-    selectedButtons.push(this);
+    selectedButtons.push(this.name);
+    selectedButtons.sort((a, b) => a - b);
   } else {
     // If the button is already clicked, change its color back to its previous color.
     this.style.backgroundColor = "rgb(214, 211, 211)";
-    selectedButtons.splice(selectedButtons.indexOf(this), 1);
+    selectedButtons.splice(selectedButtons.indexOf(this.name), 1);
   }
   //resetting after more rhythm change
   const doneRhythmButton = document.querySelector(".done-rhythm");
@@ -46,12 +48,12 @@ function changeButtonColor() {
   numNotesText.innerHTML = "Please select rhythm components in order to assign pitch";
 }
 
+var midiNoteSequence = [];
 function processPitches(){
-  var midiNoteSequence = [];
+  midiNoteSequence.splice(0, midiNoteSequence.length);
   var value = document.getElementById("pitch-entry").value;
   var notes = value.split(" ");
   var numErrorsText = document.getElementById("note-errors");
-  console.log(selectedButtons.length);
   if (notes.length != selectedButtons.length){
     if (notes.length < selectedButtons.length){
       const difference = selectedButtons.length - notes.length;
@@ -78,7 +80,7 @@ function processPitches(){
               numErrorsText.innerHTML = start + notes[i] + end;
             } else {
               if (num >= 1 || num <= 9) {
-                midiNoteSequence.push(midiDict[notes[i]])
+                midiNoteSequence.push(notes[i].toUpperCase())
                 numErrorsText.innerHTML = "";
                 const processNotesButton = document.querySelector(".process-notes");
                 processNotesButton.style.backgroundColor = "red";
@@ -99,7 +101,7 @@ function processPitches(){
           const num = charNumber.charCodeAt() - 0x00;
           if (letter >= 'A' && letter <= 'G'){
             if (num >= 1 || num <= 9) {
-              midiNoteSequence.push(midiDict[notes[i]])
+              midiNoteSequence.push(notes[i].toUpperCase())
               numErrorsText.innerHTML = "";
               const processNotesButton = document.querySelector(".process-notes");
               processNotesButton.style.backgroundColor = "red";
@@ -117,5 +119,18 @@ function processPitches(){
       }
     }
   }
+  calcNoteDurations();
 }
 
+var noteDurations = [];
+function calcNoteDurations() {
+  noteDurations.splice(0, noteDurations.length);
+  for (let i = 0; i < selectedButtons.length - 1; i++){
+    let key = selectedButtons[i+1] - selectedButtons[i];
+    noteDurations.push(durationDict[key]);
+  }
+  let key = 65 - selectedButtons[selectedButtons.length-1];
+  noteDurations.push(durationDict[key]);
+  console.log(midiNoteSequence);
+  console.log(noteDurations);
+}
