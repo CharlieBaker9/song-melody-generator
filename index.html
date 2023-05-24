@@ -1,48 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Song Melody Generator</title>
-
-<link rel="stylesheet" href="style.css">
-
-<script>
-  // Create a function to be called when a button is clicked.
-  function buttonClicked(event) {
-    // Get the button that was clicked.
-    var button = event.target;
-  
-    // Do something with the button.
-    button.style.backgroundColor = "blue";
-    console.log("Button " + button.innerHTML + " was clicked.");
-  }
-  
-  // Add the `click` event listener to all of the buttons.
-  var buttons = document.querySelectorAll("button");
-  for (var i = 0; i < buttons.length; i++) {
-    buttons[i].addEventListener("click", buttonClicked);
-  }
-</script>
-
+  <title>Song Melody Generator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="rhythmButtonScript.js"></script>
 </head>
 <body>
-<h1>Song Melody Generator</h1>
-<div id="buttons">
-  <button>1</button>
-  <button>e</button>
-  <button>+</button>
-  <button>a</button>
-  <button>2</button>
-  <button>e</button>
-  <button>+</button>
-  <button>a</button>
-  <button>3</button>
-  <button>e</button>
-  <button>+</button>
-  <button>a</button>
-  <button>4</button>
-  <button>e</button>
-  <button>+</button>
-  <button>a</button>
+<div class="header-box">
+  <h1 class="header-title">Song Melody Generator</h1>
 </div>
+<div id="buttons">
+  <button name="1">1</button>
+  <button name="2">e</button>
+  <button name="3">+</button>
+  <button name="4">a</button>
+  <button name="5">2</button>
+  <button name="6">e</button>
+  <button name="7">+</button>
+  <button name="8">a</button>
+  <button name="9">3</button>
+  <button name="10">e</button>
+  <button name="11">+</button>
+  <button name="12">a</button>
+  <button name="13">4</button>
+  <button name="14">e</button>
+  <button name="15">+</button>
+  <button name="16">a</button>
+</div>
+<div id="buttons">
+  <button name="17">1</button>
+  <button name="18">e</button>
+  <button name="19">+</button>
+  <button name="20">a</button>
+  <button name="21">2</button>
+  <button name="22">e</button>
+  <button name="23">+</button>
+  <button name="24">a</button>
+  <button name="25">3</button>
+  <button name="26">e</button>
+  <button name="27">+</button>
+  <button name="28">a</button>
+  <button name="29">4</button>
+  <button name="30">e</button>
+  <button name="31">+</button>
+  <button name="32">a</button>
+</div>
+<div id="buttons">
+  <button name="33">1</button>
+  <button name="34">e</button>
+  <button name="35">+</button>
+  <button name="36">a</button>
+  <button name="37">2</button>
+  <button name="38">e</button>
+  <button name="39">+</button>
+  <button name="40">a</button>
+  <button name="41">3</button>
+  <button name="42">e</button>
+  <button name="43">+</button>
+  <button name="44">a</button>
+  <button name="45">4</button>
+  <button name="46">e</button>
+  <button name="47">+</button>
+  <button name="48">a</button>
+</div>
+<div id="buttons">
+  <button name="49">1</button>
+  <button name="50">e</button>
+  <button name="51">+</button>
+  <button name="52">a</button>
+  <button name="53">2</button>
+  <button name="54">e</button>
+  <button name="55">+</button>
+  <button name="56">a</button>
+  <button name="57">3</button>
+  <button name="58">e</button>
+  <button name="59">+</button>
+  <button name="60">a</button>
+  <button name="61">4</button>
+  <button name="62">e</button>
+  <button name="63">+</button>
+  <button name="64">a</button>
+</div>
+<div class="rhythm-button-container">
+  <button class="done-rhythm">Done with Rhythm</button>
+</div>
+<div id="num-notes">Please select rhythm components in order to assign pitch</div>
+<input type="text" id="notes">
 </body>
 </html>
