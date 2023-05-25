@@ -1,5 +1,6 @@
 import { durationDict } from "./durationDictionary.js";
 //import MidiWriterJS from 'midi-writer-js';
+import MidiWriterJS from '/Users/charliebaker/node_modules/midi-writer-js/node_modules';
 
 document.addEventListener("DOMContentLoaded", function() {
   const buttons = document.querySelectorAll("#buttons button");
@@ -11,6 +12,13 @@ document.addEventListener("DOMContentLoaded", function() {
   doneRhythmButton.addEventListener("click", changeBackgroundColorToRed);
 
   document.getElementById("process-notes").addEventListener("click", processPitches);
+  document.getElementById("midi-listen").addEventListener("click", listenMelody);
+  document.getElementById("listen-song").addEventListener("click", listenSong);
+
+  const sectionButtons = document.querySelectorAll(".sectionTypes button");
+  for (const button of sectionButtons) {
+    button.addEventListener("click", changeSectionButtonColor);
+  }
 });
 
 function changeBackgroundColorToRed() {
@@ -44,7 +52,7 @@ function changeButtonColor() {
   //resetting after more rhythm change
   const doneRhythmButton = document.querySelector(".done-rhythm");
   doneRhythmButton.style.backgroundColor = "rgb(60, 60, 145)";
-  const processNotesButton = document.querySelector(".process-notes");
+  const processNotesButton = document.querySelector(".make-notes");
   processNotesButton.style.backgroundColor = "rgb(60, 60, 145)";
   var numNotesText = document.getElementById("num-notes");
   numNotesText.innerHTML = "Please select rhythm components in order to assign pitch";
@@ -85,7 +93,7 @@ function processPitches(){
               if (num >= 1 || num <= 9) {
                 midiNoteSequence.push(notes[i].toUpperCase())
                 numErrorsText.innerHTML = "";
-                const processNotesButton = document.querySelector(".process-notes");
+                const processNotesButton = document.querySelector(".make-notes");
                 processNotesButton.style.backgroundColor = "red";
               } else {
                 var start = "You inputted "
@@ -106,7 +114,7 @@ function processPitches(){
             if (num >= 1 || num <= 9) {
               midiNoteSequence.push(notes[i].toUpperCase())
               numErrorsText.innerHTML = "";
-              const processNotesButton = document.querySelector(".process-notes");
+              const processNotesButton = document.querySelector(".make-notes");
               processNotesButton.style.backgroundColor = "red";
             } else {
               var start = "You inputted "
@@ -137,4 +145,42 @@ function calcNoteDurations() {
   console.log(midiNoteSequence);
   console.log(noteDurations);
   //this will trigger the creation of a midi file
+}
+
+function listenMelody() {
+  //need a check to make sure midi file exists -- if it does continue
+  //else spit out an error statement and don't change background color
+  this.style.backgroundColor = "red";
+  //here is where I access the melody that I processed and play it
+  //after playing melody turn it back to blue;
+}
+
+var sectionArrangement = [];
+function changeSectionButtonColor() {
+  this.style.backgroundColor = "red";
+  for (let i = 0; i < sectionArrangement.length; i++){
+    if (Math.round(this.name) == Math.round(sectionArrangement[i].name)){
+      sectionArrangement[i].style.backgroundColor = "rgb(60, 60, 145)";
+      sectionArrangement.splice(i, 1);
+    }
+  }
+  this.backgroundColor = "red";
+  sectionArrangement.push(this);
+  sectionArrangement.sort((a, b) => a - b);
+
+  //make midi file for song
+  if (sectionArrangement.length == 4){
+    //make midi file
+  }
+}
+
+function listenSong() {
+  //here is where I access the song that I processed and play it
+  var errorsText = document.getElementById("make-song-errors");
+  if (sectionArrangement.length == 4){
+    errorsText.innerHTML = "";
+    this.style.backgroundColor = "red";
+  } else {
+    errorsText.innerHTML = "Please select an arrangement for all 4 sections";
+  }
 }

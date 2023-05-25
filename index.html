@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="header-box">
-  <h1 class="header-title">Song Melody Generator</h1>
+  <h1 class="header-title">AI Song Melody Generator</h1>
 </div>
 <div id="buttons">
   <button name="1">1</button>
@@ -86,10 +86,58 @@
 </div>
 <div id="num-notes">Please select rhythm components in order to assign pitch</div>
 <input type="text" id="pitch-entry">
-<div class="process-notes-container">
-  <button class="process-notes" id="process-notes">Process Notes</button>
+<div class="make-container">
+  <button class="make-notes" id="process-notes">Process Notes</button>
 </div>
-<div id="note-errors"></div>
+<div id="note-errors" class="errors"></div>
 <!-- midi file can be played from hear once a pdf download -->
+<div class="make-container">
+  <button class="make-notes" id="midi-listen">Listen to your Melody</button>
+</div>
+<div id="make-melody-errors" class="errors"></div>
+<div class="sectionContainers">
+  Section 1
+  <div class="sectionTypes">
+    <button class="sections" name="1.1">Repetition</button>
+    <button class="sections" name="1.2">Prime Section</button>
+    <button class="sections" name="1.3">Transposition</button>
+    <button class="sections" name="1.4">Continuation</button>
+  </div>
+</div>
+<div class="sectionContainers">
+  Section 2
+  <div class="sectionTypes">
+    <button class="sections" name="2.1">Repetition</button>
+    <button class="sections" name="2.2">Prime Section</button>
+    <button class="sections" name="2.3">Transposition</button>
+    <button class="sections" name="2.4">Continuation</button>
+  </div>
+</div>
+<div class="sectionContainers">
+  Section 3
+  <div class="sectionTypes">
+    <button class="sections" name="3.1">Repetition</button>
+    <button class="sections" name="3.2">Prime Section</button>
+    <button class="sections" name="3.3">Transposition</button>
+    <button class="sections" name="3.4">Continuation</button>
+  </div>
+</div>
+<div class="sectionContainers">
+  Section 4
+  <div class="sectionTypes">
+    <button class="sections" name="4.1">Repetition</button>
+    <button class="sections" name="4.2">Prime Section</button>
+    <button class="sections" name="4.3">Transposition</button>
+    <button class="sections" name="4.4">Continuation</button>
+  </div>
+</div>
+<div class="make-container">
+  <button class="make-notes" id="listen-song">Listen to your Song</button>
+</div>
+<div id="make-song-errors" class="errors"></div>
+<div class="make-container">
+  <button class="make-notes" id="download-song">Download your Song</button>
+</div>
+<div id="download-song-errors" class="errors"></div>
 </body>
 </html>
