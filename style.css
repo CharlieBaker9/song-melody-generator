@@ -55,11 +55,14 @@ button:hover {
   height: 70px;
 }
 
-#num-notes {
+div#num-notes {
   display: flex;
   justify-content: center;
+  align-items: center;
   font-size: 30px;
   margin: 15px;
+  width: 80%;
+  margin: 0 auto;
 }
 
 input#pitch-entry {
