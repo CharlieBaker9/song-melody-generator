@@ -1,5 +1,5 @@
 import { durationDict } from "./durationDictionary.js";
-//import MidiWriter from "/Users/charliebaker/node_modules/midi-writer-js/node_modules";
+//import MidiWriterJS from 'midi-writer-js';
 
 document.addEventListener("DOMContentLoaded", function() {
   const buttons = document.querySelectorAll("#buttons button");
@@ -44,6 +44,8 @@ function changeButtonColor() {
   //resetting after more rhythm change
   const doneRhythmButton = document.querySelector(".done-rhythm");
   doneRhythmButton.style.backgroundColor = "rgb(60, 60, 145)";
+  const processNotesButton = document.querySelector(".process-notes");
+  processNotesButton.style.backgroundColor = "rgb(60, 60, 145)";
   var numNotesText = document.getElementById("num-notes");
   numNotesText.innerHTML = "Please select rhythm components in order to assign pitch";
 }
@@ -53,6 +55,7 @@ function processPitches(){
   midiNoteSequence.splice(0, midiNoteSequence.length);
   var value = document.getElementById("pitch-entry").value;
   var notes = value.split(" ");
+  console.log(notes[0])
   var numErrorsText = document.getElementById("note-errors");
   if (notes.length != selectedButtons.length){
     if (notes.length < selectedButtons.length){
@@ -133,4 +136,5 @@ function calcNoteDurations() {
   noteDurations.push(durationDict[key]);
   console.log(midiNoteSequence);
   console.log(noteDurations);
+  //this will trigger the creation of a midi file
 }
