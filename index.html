@@ -4,6 +4,9 @@
   <title>Song Melody Generator</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="buttonScript.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@magenta/music@1.9.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@2.1.4/browser/midiwriter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 <body>
 <div class="header-box">
@@ -90,7 +93,11 @@
   <button class="make-notes" id="process-notes">Process Notes</button>
 </div>
 <div id="note-errors" class="errors"></div>
-<!-- midi file can be played from hear once a pdf download -->
+<div id="tempo-container">
+  <div class= "tempo" id="tempoNum">80</div>
+  <div class= "tempo" id="tempoBPM">BPM</div> 
+</div>
+<input type="range" min="0" max="160" value="80" id="slider">
 <div class="make-container">
   <button class="make-notes" id="midi-listen">Listen to your Melody</button>
 </div>
@@ -129,6 +136,13 @@
     <button class="sections" name="4.2">Prime Section</button>
     <button class="sections" name="4.3">Transposition</button>
     <button class="sections" name="4.4">Continuation</button>
+  </div>
+</div>
+<div id="transposition">
+  <div id="transpositionPrompt"></div>
+  <div id="sameLine">
+    <input type="text" id="transpositionEntry" style="display: none">
+    <button class="make-notes" id="transposeButton" style="display: none">Transpose</button>
   </div>
 </div>
 <div class="make-container">

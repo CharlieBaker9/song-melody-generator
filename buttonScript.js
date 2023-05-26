@@ -1,6 +1,5 @@
 import { durationDict } from "./durationDictionary.js";
-//import MidiWriterJS from 'midi-writer-js';
-import MidiWriterJS from '/Users/charliebaker/node_modules/midi-writer-js/node_modules';
+import { makeMidiFile, playMelody, transpose, sampleModel, playSong } from "./midiHelper.js";
 
 document.addEventListener("DOMContentLoaded", function() {
   const buttons = document.querySelectorAll("#buttons button");
@@ -11,8 +10,19 @@ document.addEventListener("DOMContentLoaded", function() {
   const doneRhythmButton = document.querySelector(".done-rhythm");
   doneRhythmButton.addEventListener("click", changeBackgroundColorToRed);
 
+  const slider = document.getElementById("slider");
+  const number = document.getElementById("tempoNum");
+
+  slider.addEventListener("mousemove", () => {
+    number.textContent = slider.value;
+  });
+
+  function showInputBox() {
+    document.getElementById("inputBox").style.display = "block";
+  }
+
   document.getElementById("process-notes").addEventListener("click", processPitches);
-  document.getElementById("midi-listen").addEventListener("click", listenMelody);
+  document.getElementById("midi-listen").addEventListener("click", playMelody);
   document.getElementById("listen-song").addEventListener("click", listenSong);
 
   const sectionButtons = document.querySelectorAll(".sectionTypes button");
@@ -40,7 +50,7 @@ function changeBackgroundColorToRed() {
 var selectedButtons = [];
 function changeButtonColor() {
   // If the button is not already clicked, change its color to blue.
-  if (selectedButtons.indexOf(this) === -1) {
+  if (selectedButtons.indexOf(this.name) === -1) {
     this.style.backgroundColor = "rgb(60, 60, 145)";
     selectedButtons.push(this.name);
     selectedButtons.sort((a, b) => a - b);
@@ -62,8 +72,9 @@ var midiNoteSequence = [];
 function processPitches(){
   midiNoteSequence.splice(0, midiNoteSequence.length);
   var value = document.getElementById("pitch-entry").value;
-  var notes = value.split(" ");
-  console.log(notes[0])
+  var notes = value.split(" ").filter(function(note) {
+    return note !== "";
+  });
   var numErrorsText = document.getElementById("note-errors");
   if (notes.length != selectedButtons.length){
     if (notes.length < selectedButtons.length){
@@ -144,18 +155,11 @@ function calcNoteDurations() {
   noteDurations.push(durationDict[key]);
   console.log(midiNoteSequence);
   console.log(noteDurations);
-  //this will trigger the creation of a midi file
-}
-
-function listenMelody() {
-  //need a check to make sure midi file exists -- if it does continue
-  //else spit out an error statement and don't change background color
-  this.style.backgroundColor = "red";
-  //here is where I access the melody that I processed and play it
-  //after playing melody turn it back to blue;
+  makeMidiFile(midiNoteSequence, noteDurations);
 }
 
 var sectionArrangement = [];
+var song = [];
 function changeSectionButtonColor() {
   this.style.backgroundColor = "red";
   for (let i = 0; i < sectionArrangement.length; i++){
@@ -170,16 +174,44 @@ function changeSectionButtonColor() {
 
   //make midi file for song
   if (sectionArrangement.length == 4){
-    //make midi file
+    for (let i=0; i < 4; i++){
+      if (sectionArrangement[i].name.toString().endsWith(".1")){
+        song[i] = makeMidiFile(midiNoteSequence, noteDurations);
+      } else if (sectionArrangement[i].name.toString().endsWith(".2")){
+        song[i] = "prime section";
+      } else if (sectionArrangement[i].name.toString().endsWith(".3")){
+        var text = "Please input the # of semitones to transpose your melody by (... -2,-1,1,2 ...)";
+        document.getElementById("transpositionPrompt").innerHTML = text;
+        document.getElementById("transpositionEntry").style.display = "block";
+        document.getElementById("transpositionEntry").style.margin = "0 auto";
+        document.getElementById("transposeButton").style.display = "flex";
+
+
+        song[i] = transpose(midiNoteSequence, noteDurations);
+      } else {
+        console.log("do I always go here?");
+        song[i] = sampleModel(midiNoteSequence, noteDurations);
+      }
+    } 
+    var noTranspose = true;
+    for (let i=0; i < 4; i++){
+      if (sectionArrangement[i].name.toString().endsWith(".3")){
+        noTranspose = false;
+      }
+    }
+    if (noTranspose){
+      document.getElementById("transpositionPrompt").innerHTML = "";
+      document.getElementById("transpositionEntry").style.display = "none";
+    }
   }
 }
 
 function listenSong() {
   //here is where I access the song that I processed and play it
   var errorsText = document.getElementById("make-song-errors");
-  if (sectionArrangement.length == 4){
+  if (song.length == 4){
     errorsText.innerHTML = "";
-    this.style.backgroundColor = "red";
+    playSong(song);
   } else {
     errorsText.innerHTML = "Please select an arrangement for all 4 sections";
   }

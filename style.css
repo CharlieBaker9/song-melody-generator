@@ -68,6 +68,7 @@ div#num-notes {
 input#pitch-entry {
   display: flex;
   justify-content: center;
+  text-align: center;
   width: calc(100vw - 90px);
   margin: 20px;
   font-size: 25px;
@@ -102,6 +103,27 @@ input#pitch-entry {
   margin: 15px;
 }
 
+#tempo-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.tempo {
+  margin: 4px;
+  font-size: 30px;
+}
+
+#slider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: calc(100vw - 400px);
+  margin: 0 auto;
+}
+
 .sectionContainers {
   display: flex;
   justify-content: center;
@@ -131,4 +153,43 @@ input#pitch-entry {
   border-radius: 0%;
   width: 330px;
   height: 70px;
+}
+
+#transpositionPrompt {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 30px;
+  margin: 20px;
+}
+
+#sameLine {
+  width: 300px;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin: 0 auto;
+  align-items: center;
+}
+
+input#transpositionEntry {
+  width: 125px;
+  height: 30px;
+  font-size: 25px;
+  text-align: center;
+}
+
+#transposeButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(60, 60, 145);
+  color: white;
+  font-family: sans-serif;
+  border: 5px solid rgb(0, 0, 0);
+  font-size: 20px;
+  border-radius: 0%;
+  width: 150px;
+  height: 45px;
 }
