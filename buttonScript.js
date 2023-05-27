@@ -1,5 +1,4 @@
-import { durationDict } from "./durationDictionary.js";
-import { makeMidiFile, playMelody, transpose, sampleModel, playSong } from "./midiHelper.js";
+import { midiDict } from "./midiDictionary.js";
 
 document.addEventListener("DOMContentLoaded", function() {
   const buttons = document.querySelectorAll("#buttons button");
@@ -15,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   slider.addEventListener("mousemove", () => {
     number.textContent = slider.value;
+    bpm = slider.value;
   });
 
   function showInputBox() {
@@ -24,6 +24,12 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("process-notes").addEventListener("click", processPitches);
   document.getElementById("midi-listen").addEventListener("click", playMelody);
   document.getElementById("listen-song").addEventListener("click", listenSong);
+  document.getElementById("train-model").addEventListener("click", trainModel)
+  document.getElementById("download-song").addEventListener("click", downloadSong);
+  document.getElementById("transposeButton1").addEventListener("click", transpose1);
+  document.getElementById("transposeButton2").addEventListener("click", transpose2);
+  document.getElementById("transposeButton3").addEventListener("click", transpose3);
+  document.getElementById("transposeButton4").addEventListener("click", transpose4);
 
   const sectionButtons = document.querySelectorAll(".sectionTypes button");
   for (const button of sectionButtons) {
@@ -69,6 +75,7 @@ function changeButtonColor() {
 }
 
 var midiNoteSequence = [];
+var pitches = [];
 function processPitches(){
   midiNoteSequence.splice(0, midiNoteSequence.length);
   var value = document.getElementById("pitch-entry").value;
@@ -141,6 +148,9 @@ function processPitches(){
       }
     }
   }
+  for (let i = 0; i < midiNoteSequence.length; i++){
+    pitches.push(midiDict[midiNoteSequence[i]]);
+  }
   calcNoteDurations();
 }
 
@@ -149,13 +159,21 @@ function calcNoteDurations() {
   noteDurations.splice(0, noteDurations.length);
   for (let i = 0; i < selectedButtons.length - 1; i++){
     let key = selectedButtons[i+1] - selectedButtons[i];
-    noteDurations.push(durationDict[key]);
+    noteDurations.push(key);
   }
   let key = 65 - selectedButtons[selectedButtons.length-1];
-  noteDurations.push(durationDict[key]);
-  console.log(midiNoteSequence);
+  noteDurations.push(key);
   console.log(noteDurations);
-  makeMidiFile(midiNoteSequence, noteDurations);
+
+  sequence.notes.splice(0, sequence.notes.length);
+  sequence.tempos[0].qpm = bpm;
+  let s = 0;
+  for(let i = 0; i < pitches.length; i++){
+    let d = noteDurations[i] / 16;
+    sequence.notes.push({pitch: pitches[i], startTime: s, endTime: s+d});
+    s += d;
+  }
+  sequence.totalTime = s;
 }
 
 var sectionArrangement = [];
@@ -173,35 +191,34 @@ function changeSectionButtonColor() {
   sectionArrangement.sort((a, b) => a - b);
 
   //make midi file for song
+  var primeCount = 0;
   if (sectionArrangement.length == 4){
     for (let i=0; i < 4; i++){
       if (sectionArrangement[i].name.toString().endsWith(".1")){
-        song[i] = makeMidiFile(midiNoteSequence, noteDurations);
+        song[i] = sequence;
       } else if (sectionArrangement[i].name.toString().endsWith(".2")){
-        song[i] = "prime section";
+        song[i] = primeSection();
+        primeCount += 1;
       } else if (sectionArrangement[i].name.toString().endsWith(".3")){
-        var text = "Please input the # of semitones to transpose your melody by (... -2,-1,1,2 ...)";
-        document.getElementById("transpositionPrompt").innerHTML = text;
-        document.getElementById("transpositionEntry").style.display = "block";
-        document.getElementById("transpositionEntry").style.margin = "0 auto";
-        document.getElementById("transposeButton").style.display = "flex";
-
-
-        song[i] = transpose(midiNoteSequence, noteDurations);
+        let num = i+1
+        var text = "Please input the # of semitones to transpose your melody by (... -2,-1,1,2 ...) for section "+num;
+        document.getElementById("transpositionPrompt"+num).innerHTML = text;
+        document.getElementById("transpositionEntry"+num).style.display = "block";
+        document.getElementById("transpositionEntry"+num).style.margin = "0 auto";
+        document.getElementById("transposeButton"+num).style.display = "flex";
       } else {
-        console.log("do I always go here?");
-        song[i] = sampleModel(midiNoteSequence, noteDurations);
+        sampleModel(i);
       }
     } 
-    var noTranspose = true;
     for (let i=0; i < 4; i++){
-      if (sectionArrangement[i].name.toString().endsWith(".3")){
-        noTranspose = false;
+      let num = i+1;
+      if (!sectionArrangement[i].name.toString().endsWith(".3")){
+        if (document.getElementById("transpositionEntry"+num).style.display != "none"){
+          document.getElementById("transpositionPrompt"+num).innerHTML = "";
+          document.getElementById("transpositionEntry"+num).style.display = "none";
+          document.getElementById("transposeButton"+num).style.display = "none";
+        }
       }
-    }
-    if (noTranspose){
-      document.getElementById("transpositionPrompt").innerHTML = "";
-      document.getElementById("transpositionEntry").style.display = "none";
     }
   }
 }
@@ -216,3 +233,172 @@ function listenSong() {
     errorsText.innerHTML = "Please select an arrangement for all 4 sections";
   }
 }
+const checkpoint = 'https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/'
+const model = 'mel_4bar_med_q2'
+const music_vae = new mm.MusicVAE(checkpoint + model);
+const music_rnn = new mm.MusicRNN('https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/basic_rnn')
+const midime = new mm.MidiMe({epochs: 100})
+const player = new mm.Player();
+let quantNoteSeq = null;
+var timesig = [4,4];
+var initialBpm = 80;
+let sequence = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+} 
+
+let songSequence = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+}
+
+let bpm;
+function playMelody(){
+  mm.Player.tone.context.resume();
+  player.start(sequence)
+}
+
+const sampleModel = async (num) => {
+  var sample = await midime.sample(8)
+  const sequences = await music_vae.decode(sample)
+  var playableSample = mm.sequences.concatenate([...sequences])
+  let sampleSequence = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  }
+  let startTime = playableSample.notes[i]["quantizedStartStep"];
+  let endTime = Math.floor(Math.random() * 5) + 2;    //need to fix this
+  for(let i = 0; i < playableSample.notes.length; i++){
+    console.log(i);
+    sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: startTime, endTime: endTime});
+    startTime = endTime;
+    endTime += Math.floor(Math.random() * 5) + 2;
+  }
+  console.log(sampleSequence);
+
+  song[num] = sampleSequence;
+}
+
+function playSong(){
+  var songSequence = createSongSequence();
+  mm.Player.tone.context.resume();
+  player.start(songSequence)
+}
+
+
+function downloadSong(){
+  // Taken from https://stackoverflow.com/q/64179468
+  const magentaMidi = mm.sequenceProtoToMidi(songSequence);
+  const magentaFile = new Blob([magentaMidi], { type: 'audio/midi' })
+  const url = URL.createObjectURL(magentaFile);
+  
+  // Taken from https://stackoverflow.com/a/9834261
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = 'Charlie-Output.MID';
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function createSongSequence(){
+  songSequence.notes.splice(0, sequence.notes.length);
+  songSequence.tempos[0].qpm = bpm;
+  let s = 0;
+  console.log(song);
+  for(let i = 0; i < song.length; i++){
+    for(let i = 0; i < song[i].notes.length; i++){
+      sequence.notes.push({pitch: song[i].notes[i]["pitch"], startTime: s, endTime: song[i].notes[i]["endTime"]});
+      s = song[i].notes[i]["endTime"];
+    }
+  }
+  songSequence.totalTime = s
+}
+
+const trainModel = async () => {
+  // Initialize the RNN for continueSequence and the vae for interpolate
+  document.getElementById("train-model").style.backgroundColor = "red";
+  await music_rnn.initialize();
+  await music_vae.initialize();
+  await midime.initialize();
+  quantNoteSeq = mm.sequences.quantizeNoteSequence(sequence, 4);
+  const data = await music_vae.encode([quantNoteSeq]);
+  let epochUpdate = document.getElementById("epoch-update")
+  await midime.train(data, async (epoch) => {
+    epochUpdate.innerHTML = "Epoch " + (epoch + 1) + " / 100"
+  })
+}
+
+
+  // Very Repetitive code
+  let transposeSequence1 = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  }
+  let transposeSequence2 = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  } 
+  let transposeSequence3 = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  } 
+  let transposeSequence4 = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  } 
+  
+  function transpose1(){
+    document.getElementById("transposeButton1").style.backgroundColor = "red";
+    var value = +document.getElementById("transpositionEntry1").value;
+    for(let i = 0; i < sequence.notes.length; i++){
+      transposeSequence1.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    }
+    song[0] = transposeSequence1;
+  }
+  function transpose2(){
+    document.getElementById("transposeButton2").style.backgroundColor = "red";
+    var value = +document.getElementById("transpositionEntry2").value;
+    for(let i = 0; i < sequence.notes.length; i++){
+      transposeSequence2.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    }
+    song[1] = transposeSequence2;
+  }
+  function transpose3(){
+    document.getElementById("transposeButton3").style.backgroundColor = "red";
+    var value = +document.getElementById("transpositionEntry3").value;
+    for(let i = 0; i < sequence.notes.length; i++){
+      transposeSequence3.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    }
+    song[2] = transposeSequence3;
+  }
+  function transpose4(){
+    document.getElementById("transposeButton4").style.backgroundColor = "red";
+    var value = +document.getElementById("transpositionEntry4").value;
+    for(let i = 0; i < sequence.notes.length; i++){
+      transposeSequence4.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    }
+    song[3] = transposeSequence4;
+  }
