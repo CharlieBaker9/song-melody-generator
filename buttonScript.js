@@ -163,7 +163,6 @@ function calcNoteDurations() {
   }
   let key = 65 - selectedButtons[selectedButtons.length-1];
   noteDurations.push(key);
-  console.log(noteDurations);
 
   sequence.notes.splice(0, sequence.notes.length);
   sequence.tempos[0].qpm = bpm;
@@ -275,21 +274,22 @@ const sampleModel = async (num) => {
     tempos: [{time: 0, qpm: initialBpm}],
     notes: [ ]
   }
-  let startTime = playableSample.notes[i]["quantizedStartStep"];
+  let startTime = playableSample.notes[0]["quantizedStartStep"];
   let endTime = Math.floor(Math.random() * 5) + 2;    //need to fix this
   for(let i = 0; i < playableSample.notes.length; i++){
-    console.log(i);
     sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: startTime, endTime: endTime});
     startTime = endTime;
     endTime += Math.floor(Math.random() * 5) + 2;
   }
-  console.log(sampleSequence);
 
   song[num] = sampleSequence;
 }
 
 function playSong(){
-  var songSequence = createSongSequence();
+  createSongSequence();
+
+  console.log(songSequence);
+  
   mm.Player.tone.context.resume();
   player.start(songSequence)
 }
@@ -315,11 +315,10 @@ function createSongSequence(){
   songSequence.notes.splice(0, sequence.notes.length);
   songSequence.tempos[0].qpm = bpm;
   let s = 0;
-  console.log(song);
   for(let i = 0; i < song.length; i++){
-    for(let i = 0; i < song[i].notes.length; i++){
-      sequence.notes.push({pitch: song[i].notes[i]["pitch"], startTime: s, endTime: song[i].notes[i]["endTime"]});
-      s = song[i].notes[i]["endTime"];
+    for(let j = 0; j < song[i].notes.length; j++){
+      songSequence.notes.push({pitch: song[i].notes[j]["pitch"], startTime: s, endTime: song[i].notes[j]["endTime"]});
+      s = song[i].notes[j]["endTime"];
     }
   }
   songSequence.totalTime = s
