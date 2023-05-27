@@ -5,7 +5,6 @@
   <link rel="stylesheet" href="style.css">
   <script type="module" src="buttonScript.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@magenta/music@1.9.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@2.1.4/browser/midiwriter.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 <body>
@@ -102,10 +101,15 @@
   <button class="make-notes" id="midi-listen">Listen to your Melody</button>
 </div>
 <div id="make-melody-errors" class="errors"></div>
+<div class="make-container">
+  <button class="make-notes" id="train-model">Train Model</button>
+</div>
+<div id="epoch-update"></div>
+<div id="make-melody-errors" class="errors"></div>
 <div class="sectionContainers">
   Section 1
   <div class="sectionTypes">
-    <button class="sections" name="1.1">Repetition</button>
+    <button class="sections" name="1.1">Your Melody</button>
     <button class="sections" name="1.2">Prime Section</button>
     <button class="sections" name="1.3">Transposition</button>
     <button class="sections" name="1.4">Continuation</button>
@@ -139,16 +143,32 @@
   </div>
 </div>
 <div id="transposition">
-  <div id="transpositionPrompt"></div>
+  <div id="transpositionPrompt1"></div>
   <div id="sameLine">
-    <input type="text" id="transpositionEntry" style="display: none">
-    <button class="make-notes" id="transposeButton" style="display: none">Transpose</button>
+    <input type="text" id="transpositionEntry1" style="display: none">
+    <button class="make-notes" id="transposeButton1" style="display: none">Transpose</button>
+  </div>
+  <div id="transpositionPrompt2"></div>
+  <div id="sameLine">
+    <input type="text" id="transpositionEntry2" style="display: none">
+    <button class="make-notes" id="transposeButton2" style="display: none">Transpose</button>
+  </div>
+  <div id="transpositionPrompt3"></div>
+  <div id="sameLine">
+    <input type="text" id="transpositionEntry3" style="display: none">
+    <button class="make-notes" id="transposeButton3" style="display: none">Transpose</button>
+  </div>
+  <div id="transpositionPrompt4"></div>
+  <div id="sameLine">
+    <input type="text" id="transpositionEntry4" style="display: none">
+    <button class="make-notes" id="transposeButton4" style="display: none">Transpose</button>
   </div>
 </div>
 <div class="make-container">
   <button class="make-notes" id="listen-song">Listen to your Song</button>
 </div>
 <div id="make-song-errors" class="errors"></div>
+<div id="epochsText" class="errors"></div>
 <div class="make-container">
   <button class="make-notes" id="download-song">Download your Song</button>
 </div>
