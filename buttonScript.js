@@ -24,8 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("process-notes").addEventListener("click", processPitches);
   document.getElementById("midi-listen").addEventListener("click", playMelody);
   document.getElementById("listen-song").addEventListener("click", listenSong);
-  document.getElementById("train-model").addEventListener("click", trainModel)
-  document.getElementById("download-song").addEventListener("click", downloadSong);
+  document.getElementById("train-model").addEventListener("click", trainModel);
   document.getElementById("transposeButton1").addEventListener("click", transpose1);
   document.getElementById("transposeButton2").addEventListener("click", transpose2);
   document.getElementById("transposeButton3").addEventListener("click", transpose3);
@@ -175,29 +174,24 @@ function calcNoteDurations() {
   sequence.totalTime = s;
 }
 
-var sectionArrangement = [];
-var song = [];
+var sectionArrangement = ["", "", "", ""];
+var song = ["", "", "", ""];
 function changeSectionButtonColor() {
   this.style.backgroundColor = "red";
-  for (let i = 0; i < sectionArrangement.length; i++){
-    if (Math.round(this.name) == Math.round(sectionArrangement[i].name)){
-      sectionArrangement[i].style.backgroundColor = "rgb(60, 60, 145)";
-      sectionArrangement.splice(i, 1);
-    }
+
+  if (!(sectionArrangement[Math.round(this.name)-1] == "")){
+    sectionArrangement[Math.round(this.name)-1].style.backgroundColor = "rgb(60, 60, 145)";
   }
   this.backgroundColor = "red";
-  sectionArrangement.push(this);
-  sectionArrangement.sort((a, b) => a - b);
+  sectionArrangement[Math.round(this.name)-1] = this;
 
   //make midi file for song
-  var primeCount = 0;
-  if (sectionArrangement.length == 4){
+  if (sectionArrangement[0] != "" && sectionArrangement[1] != "" && sectionArrangement[2] != "" && sectionArrangement[3] != ""){
     for (let i=0; i < 4; i++){
       if (sectionArrangement[i].name.toString().endsWith(".1")){
         song[i] = sequence;
       } else if (sectionArrangement[i].name.toString().endsWith(".2")){
-        song[i] = primeSection();
-        primeCount += 1;
+        primeSection(i);
       } else if (sectionArrangement[i].name.toString().endsWith(".3")){
         let num = i+1
         var text = "Please input the # of semitones to transpose your melody by (... -2,-1,1,2 ...) for section "+num;
@@ -220,6 +214,7 @@ function changeSectionButtonColor() {
       }
     }
   }
+  console.log(sectionArrangement);
 }
 
 function listenSong() {
@@ -232,6 +227,7 @@ function listenSong() {
     errorsText.innerHTML = "Please select an arrangement for all 4 sections";
   }
 }
+
 const checkpoint = 'https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/'
 const model = 'mel_4bar_med_q2'
 const music_vae = new mm.MusicVAE(checkpoint + model);
@@ -260,13 +256,26 @@ let songSequence = {
 let bpm;
 function playMelody(){
   mm.Player.tone.context.resume();
-  player.start(sequence)
+  player.start(sequence);
 }
 
 const sampleModel = async (num) => {
-  var sample = await midime.sample(8)
-  const sequences = await music_vae.decode(sample)
-  var playableSample = mm.sequences.concatenate([...sequences])
+  var sample = await midime.sample(8);
+  var sequences = await music_vae.decode(sample);
+  var playableSample = mm.sequences.concatenate([...sequences]);
+
+  var sameNote = true;
+  for(let i = 0; i < playableSample.notes.length; i++){
+    if (playableSample.notes[i]["pitch"] != playableSample.notes[0]["pitch"]){
+      sameNote == false;
+    }
+  }
+  if (sameNote){
+    sample = await midime.sample(8);
+    sequences = await music_vae.decode(sample);
+    playableSample = mm.sequences.concatenate([...sequences]);
+  }
+
   let sampleSequence = {
     ticksPerQuarter: 220,
     totalTime: 0.0,
@@ -274,130 +283,155 @@ const sampleModel = async (num) => {
     tempos: [{time: 0, qpm: initialBpm}],
     notes: [ ]
   }
+
+  console.log(playableSample);
+
   let startTime = playableSample.notes[0]["quantizedStartStep"];
-  let endTime = Math.floor(Math.random() * 5) + 2;    //need to fix this
+  const durationArray = [0.25, 0.25, 0.25, 0.5, 0.5, 0.5, 0.75, 1, 1, 1.25, 1.5, 2];
   for(let i = 0; i < playableSample.notes.length; i++){
-    sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: startTime, endTime: endTime});
-    startTime = endTime;
-    endTime += Math.floor(Math.random() * 5) + 2;
+    const randomNumber = Math.random() * durationArray.length;
+    let endTime = durationArray[Math.floor(randomNumber)]; 
+    sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: startTime, endTime: startTime + endTime});
+    startTime = startTime + endTime;
+  }
+  console.log(sampleSequence);
+
+  song[num] = sampleSequence;
+}
+
+const primeSection = async (num) => {
+  var sample = await midime.sample(8);
+  var sequences = await music_vae.decode(sample);
+  var playableSample = mm.sequences.concatenate([...sequences]);
+
+  var sameNote = true;
+  for(let i = 0; i < playableSample.notes.length; i++){
+    if (playableSample.notes[i]["pitch"] != playableSample.notes[0]["pitch"]){
+      sameNote == false;
+    }
+  }
+  if (sameNote){
+    sample = await midime.sample(8);
+    sequences = await music_vae.decode(sample);
+    playableSample = mm.sequences.concatenate([...sequences]);
   }
 
+  let sampleSequence = {
+    ticksPerQuarter: 220,
+    totalTime: 0.0,
+    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+    tempos: [{time: 0, qpm: initialBpm}],
+    notes: [ ]
+  }
+
+  for(let i = 0; i < sequence.notes.length; i++){
+    if (i < (sequence.notes.length / 2)){
+      sampleSequence.notes.push({pitch: sequence.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    } else {
+      sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+    }
+  }
   song[num] = sampleSequence;
 }
 
 function playSong(){
   createSongSequence();
-
   console.log(songSequence);
   
   mm.Player.tone.context.resume();
-  player.start(songSequence)
-}
-
-
-function downloadSong(){
-  // Taken from https://stackoverflow.com/q/64179468
-  const magentaMidi = mm.sequenceProtoToMidi(songSequence);
-  const magentaFile = new Blob([magentaMidi], { type: 'audio/midi' })
-  const url = URL.createObjectURL(magentaFile);
-  
-  // Taken from https://stackoverflow.com/a/9834261
-  const a = document.createElement('a');
-  a.style.display = 'none';
-  a.href = url;
-  a.download = 'Charlie-Output.MID';
-  document.body.appendChild(a);
-  a.click();
-  window.URL.revokeObjectURL(url);
+  player.start(songSequence);
 }
 
 function createSongSequence(){
   songSequence.notes.splice(0, sequence.notes.length);
   songSequence.tempos[0].qpm = bpm;
-  let s = 0;
+
+  let currAdd = 0;
   for(let i = 0; i < song.length; i++){
     for(let j = 0; j < song[i].notes.length; j++){
-      songSequence.notes.push({pitch: song[i].notes[j]["pitch"], startTime: s, endTime: song[i].notes[j]["endTime"]});
-      s = song[i].notes[j]["endTime"];
+      songSequence.notes.push({pitch: song[i].notes[j]["pitch"], startTime: song[i].notes[j]["startTime"]+currAdd, endTime: song[i].notes[j]["endTime"]+currAdd});
     }
+    currAdd += song[i].notes[song[i].notes.length-1]["endTime"];
   }
-  songSequence.totalTime = s
+  songSequence.totalTime = currAdd;
 }
 
 const trainModel = async () => {
   // Initialize the RNN for continueSequence and the vae for interpolate
+  let epochUpdate = document.getElementById("epoch-update")
   document.getElementById("train-model").style.backgroundColor = "red";
+  epochUpdate.innerHTML = "Initializing Music RNN module";
   await music_rnn.initialize();
+  epochUpdate.innerHTML = "Initializing Music VAE module";
   await music_vae.initialize();
+  epochUpdate.innerHTML = "Initializing MidiMe module";
   await midime.initialize();
   quantNoteSeq = mm.sequences.quantizeNoteSequence(sequence, 4);
   const data = await music_vae.encode([quantNoteSeq]);
-  let epochUpdate = document.getElementById("epoch-update")
   await midime.train(data, async (epoch) => {
     epochUpdate.innerHTML = "Epoch " + (epoch + 1) + " / 100"
   })
 }
 
+// Very Repetitive code
+let transposeSequence1 = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+}
+let transposeSequence2 = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+} 
+let transposeSequence3 = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+} 
+let transposeSequence4 = {
+  ticksPerQuarter: 220,
+  totalTime: 0.0,
+  timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
+  tempos: [{time: 0, qpm: initialBpm}],
+  notes: [ ]
+} 
 
-  // Very Repetitive code
-  let transposeSequence1 = {
-    ticksPerQuarter: 220,
-    totalTime: 0.0,
-    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
-    tempos: [{time: 0, qpm: initialBpm}],
-    notes: [ ]
+function transpose1(){
+  document.getElementById("transposeButton1").style.backgroundColor = "red";
+  var value = +document.getElementById("transpositionEntry1").value;
+  for(let i = 0; i < sequence.notes.length; i++){
+    transposeSequence1.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
   }
-  let transposeSequence2 = {
-    ticksPerQuarter: 220,
-    totalTime: 0.0,
-    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
-    tempos: [{time: 0, qpm: initialBpm}],
-    notes: [ ]
-  } 
-  let transposeSequence3 = {
-    ticksPerQuarter: 220,
-    totalTime: 0.0,
-    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
-    tempos: [{time: 0, qpm: initialBpm}],
-    notes: [ ]
-  } 
-  let transposeSequence4 = {
-    ticksPerQuarter: 220,
-    totalTime: 0.0,
-    timeSignatures: [{time: 0, numerator: timesig[0], denominator: timesig[1]}],
-    tempos: [{time: 0, qpm: initialBpm}],
-    notes: [ ]
-  } 
-  
-  function transpose1(){
-    document.getElementById("transposeButton1").style.backgroundColor = "red";
-    var value = +document.getElementById("transpositionEntry1").value;
-    for(let i = 0; i < sequence.notes.length; i++){
-      transposeSequence1.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
-    }
-    song[0] = transposeSequence1;
+  song[0] = transposeSequence1;
+}
+function transpose2(){
+  document.getElementById("transposeButton2").style.backgroundColor = "red";
+  var value = +document.getElementById("transpositionEntry2").value;
+  for(let i = 0; i < sequence.notes.length; i++){
+    transposeSequence2.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
   }
-  function transpose2(){
-    document.getElementById("transposeButton2").style.backgroundColor = "red";
-    var value = +document.getElementById("transpositionEntry2").value;
-    for(let i = 0; i < sequence.notes.length; i++){
-      transposeSequence2.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
-    }
-    song[1] = transposeSequence2;
+  song[1] = transposeSequence2;
+}
+function transpose3(){
+  document.getElementById("transposeButton3").style.backgroundColor = "red";
+  var value = +document.getElementById("transpositionEntry3").value;
+  for(let i = 0; i < sequence.notes.length; i++){
+    transposeSequence3.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
   }
-  function transpose3(){
-    document.getElementById("transposeButton3").style.backgroundColor = "red";
-    var value = +document.getElementById("transpositionEntry3").value;
-    for(let i = 0; i < sequence.notes.length; i++){
-      transposeSequence3.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
-    }
-    song[2] = transposeSequence3;
+  song[2] = transposeSequence3;
+}
+function transpose4(){
+  document.getElementById("transposeButton4").style.backgroundColor = "red";
+  var value = +document.getElementById("transpositionEntry4").value;
+  for(let i = 0; i < sequence.notes.length; i++){
+    transposeSequence4.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
   }
-  function transpose4(){
-    document.getElementById("transposeButton4").style.backgroundColor = "red";
-    var value = +document.getElementById("transpositionEntry4").value;
-    for(let i = 0; i < sequence.notes.length; i++){
-      transposeSequence4.notes.push({pitch: sequence.notes[i]["pitch"] + value, startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
-    }
-    song[3] = transposeSequence4;
-  }
+  song[3] = transposeSequence4;
+}

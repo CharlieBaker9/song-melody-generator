@@ -13,9 +13,16 @@
   margin: 0;
 }
 
+hr {
+  color: rgb(0, 0, 0);
+  background-color: black;
+  width: calc(calc(100vw - 100px) );
+  height: 2px;
+}
+
 button {
-  width: calc(calc(100vw - 10px) / 25);
-  height: calc(calc(100vw - 10px) / 25);
+  width: calc(calc(100vw - 10px) / 26);
+  height: calc(calc(100vw - 10px) / 26);
   border-radius: 50%;
   background-color: rgb(214, 211, 211);
   border: 1px solid black;
