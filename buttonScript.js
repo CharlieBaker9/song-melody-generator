@@ -172,6 +172,7 @@ function calcNoteDurations() {
     s += d;
   }
   sequence.totalTime = s;
+  console.log(sequence);
 }
 
 var sectionArrangement = ["", "", "", ""];
@@ -328,7 +329,11 @@ const primeSection = async (num) => {
     if (i < (sequence.notes.length / 2)){
       sampleSequence.notes.push({pitch: sequence.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
     } else {
-      sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+      if (i >= playableSample.notes.length ){
+        sampleSequence.notes.push({pitch: sequence.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+      } else {
+        sampleSequence.notes.push({pitch: playableSample.notes[i]["pitch"], startTime: sequence.notes[i]["startTime"], endTime: sequence.notes[i]["endTime"]});
+      }
     }
   }
   song[num] = sampleSequence;
