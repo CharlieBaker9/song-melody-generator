@@ -17,10 +17,6 @@ document.addEventListener("DOMContentLoaded", function() {
     bpm = slider.value;
   });
 
-  function showInputBox() {
-    document.getElementById("inputBox").style.display = "block";
-  }
-
   document.getElementById("process-notes").addEventListener("click", processPitches);
   document.getElementById("midi-listen").addEventListener("click", playMelody);
   document.getElementById("listen-song").addEventListener("click", listenSong);
